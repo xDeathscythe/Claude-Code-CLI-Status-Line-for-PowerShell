@@ -45,8 +45,8 @@ $defaultConfig = @{
         timestamp = "90"
         separator = "90"
         barLow = "97"
-        barMedium = "38;5;220"
-        barHigh = "38;5;196"
+        barMedium = "93"
+        barHigh = "91"
         barEmpty = "90"
     }
     thresholds = @{
