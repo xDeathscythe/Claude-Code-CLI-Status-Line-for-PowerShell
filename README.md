@@ -59,6 +59,14 @@ This will automatically:
 
 Then restart Claude Code.
 
+### Uninstall
+
+To remove the statusline:
+
+```powershell
+irm https://raw.githubusercontent.com/xDeathscythe/Claude-Code-CLI-Status-Line-for-PowerShell/main/uninstall.ps1 | iex
+```
+
 ---
 
 ### Manual Installation
