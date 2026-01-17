@@ -1,8 +1,6 @@
 # Claude Code Custom Status Line - Installer
 # Run: irm https://raw.githubusercontent.com/xDeathscythe/Claude-Code-CLI-Status-Line-for-PowerShell/main/install.ps1 | iex
 
-$ErrorActionPreference = "Stop"
-
 Write-Host ""
 Write-Host "=================================" -ForegroundColor Cyan
 Write-Host " Claude Code Status Line Installer" -ForegroundColor Cyan
@@ -10,96 +8,104 @@ Write-Host "=================================" -ForegroundColor Cyan
 Write-Host ""
 
 # Paths
-$installDir = Join-Path $env:USERPROFILE ".claude\statusline"
-$settingsFile = Join-Path $env:USERPROFILE ".claude\settings.json"
-$repoUrl = "https://github.com/xDeathscythe/Claude-Code-CLI-Status-Line-for-PowerShell.git"
-
-# Check if git is available
-$gitAvailable = Get-Command git -ErrorAction SilentlyContinue
-
-# Create .claude directory if needed
 $claudeDir = Join-Path $env:USERPROFILE ".claude"
-if (-not (Test-Path $claudeDir)) {
-    Write-Host "Creating .claude directory..." -ForegroundColor Yellow
-    New-Item -ItemType Directory -Path $claudeDir -Force | Out-Null
-}
+$installDir = Join-Path $claudeDir "statusline"
+$settingsFile = Join-Path $claudeDir "settings.json"
+$baseUrl = "https://raw.githubusercontent.com/xDeathscythe/Claude-Code-CLI-Status-Line-for-PowerShell/main"
 
-# Install statusline files
-if (Test-Path $installDir) {
-    Write-Host "Updating existing installation..." -ForegroundColor Yellow
-    if ($gitAvailable -and (Test-Path (Join-Path $installDir ".git"))) {
-        Push-Location $installDir
-        git pull --quiet
-        Pop-Location
-        Write-Host "Updated via git pull" -ForegroundColor Green
-    } else {
-        # Re-download files
-        Remove-Item $installDir -Recurse -Force
-        if ($gitAvailable) {
-            git clone --quiet $repoUrl $installDir
-            Write-Host "Re-cloned repository" -ForegroundColor Green
-        } else {
-            New-Item -ItemType Directory -Path $installDir -Force | Out-Null
-            $baseUrl = "https://raw.githubusercontent.com/xDeathscythe/Claude-Code-CLI-Status-Line-for-PowerShell/main"
-            Invoke-WebRequest -Uri "$baseUrl/statusline.ps1" -OutFile (Join-Path $installDir "statusline.ps1")
-            Invoke-WebRequest -Uri "$baseUrl/statusline-config.json" -OutFile (Join-Path $installDir "statusline-config.json")
-            Write-Host "Downloaded files directly" -ForegroundColor Green
-        }
+try {
+    # Create .claude directory if needed
+    if (-not (Test-Path $claudeDir)) {
+        Write-Host "Creating .claude directory..." -ForegroundColor Yellow
+        New-Item -ItemType Directory -Path $claudeDir -Force | Out-Null
     }
-} else {
-    Write-Host "Installing statusline..." -ForegroundColor Yellow
-    if ($gitAvailable) {
-        git clone --quiet $repoUrl $installDir
-        Write-Host "Cloned repository" -ForegroundColor Green
-    } else {
+
+    # Create statusline directory if needed
+    if (-not (Test-Path $installDir)) {
+        Write-Host "Creating statusline directory..." -ForegroundColor Yellow
         New-Item -ItemType Directory -Path $installDir -Force | Out-Null
-        $baseUrl = "https://raw.githubusercontent.com/xDeathscythe/Claude-Code-CLI-Status-Line-for-PowerShell/main"
-        Invoke-WebRequest -Uri "$baseUrl/statusline.ps1" -OutFile (Join-Path $installDir "statusline.ps1")
-        Invoke-WebRequest -Uri "$baseUrl/statusline-config.json" -OutFile (Join-Path $installDir "statusline-config.json")
-        Write-Host "Downloaded files directly (git not found)" -ForegroundColor Green
     }
-}
 
-# Configure Claude Code settings
-Write-Host "Configuring Claude Code settings..." -ForegroundColor Yellow
+    # Download statusline files
+    Write-Host "Downloading statusline.ps1..." -ForegroundColor Yellow
+    Invoke-WebRequest -Uri "$baseUrl/statusline.ps1" -OutFile (Join-Path $installDir "statusline.ps1") -UseBasicParsing
 
-$scriptPath = Join-Path $installDir "statusline.ps1"
-$statusLineCommand = "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$scriptPath`""
+    Write-Host "Downloading statusline-config.json..." -ForegroundColor Yellow
+    Invoke-WebRequest -Uri "$baseUrl/statusline-config.json" -OutFile (Join-Path $installDir "statusline-config.json") -UseBasicParsing
 
-if (Test-Path $settingsFile) {
-    # Read existing settings
-    $settings = Get-Content $settingsFile -Raw | ConvertFrom-Json
+    Write-Host "Files downloaded" -ForegroundColor Green
 
-    # Add or update statusLineCommand
-    if ($settings.PSObject.Properties.Name -contains "statusLineCommand") {
-        $settings.statusLineCommand = $statusLineCommand
+    # Build the command
+    $scriptPath = Join-Path $installDir "statusline.ps1"
+    $statusLineCommand = "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$scriptPath`""
+
+    # Configure Claude Code settings
+    Write-Host "Configuring Claude Code settings..." -ForegroundColor Yellow
+
+    if (Test-Path $settingsFile) {
+        $content = Get-Content $settingsFile -Raw
+        $settings = $content | ConvertFrom-Json
+
+        if ($settings.PSObject.Properties.Name -contains "statusLineCommand") {
+            $settings.statusLineCommand = $statusLineCommand
+        } else {
+            $settings | Add-Member -NotePropertyName "statusLineCommand" -NotePropertyValue $statusLineCommand
+        }
+
+        $settings | ConvertTo-Json -Depth 10 | Set-Content $settingsFile -Encoding UTF8
+        Write-Host "Updated existing settings.json" -ForegroundColor Green
     } else {
-        $settings | Add-Member -NotePropertyName "statusLineCommand" -NotePropertyValue $statusLineCommand
+        $settings = @{ statusLineCommand = $statusLineCommand }
+        $settings | ConvertTo-Json -Depth 10 | Set-Content $settingsFile -Encoding UTF8
+        Write-Host "Created settings.json" -ForegroundColor Green
     }
 
-    # Write back
-    $settings | ConvertTo-Json -Depth 10 | Set-Content $settingsFile -Encoding UTF8
-    Write-Host "Updated existing settings.json" -ForegroundColor Green
-} else {
-    # Create new settings file
-    $settings = @{
-        statusLineCommand = $statusLineCommand
+    # Verify
+    Write-Host ""
+    Write-Host "Verifying..." -ForegroundColor Yellow
+    $ok = $true
+
+    if (Test-Path (Join-Path $installDir "statusline.ps1")) {
+        Write-Host "  [OK] statusline.ps1" -ForegroundColor Green
+    } else {
+        Write-Host "  [FAIL] statusline.ps1" -ForegroundColor Red
+        $ok = $false
     }
-    $settings | ConvertTo-Json -Depth 10 | Set-Content $settingsFile -Encoding UTF8
-    Write-Host "Created new settings.json" -ForegroundColor Green
+
+    if (Test-Path $settingsFile) {
+        Write-Host "  [OK] settings.json" -ForegroundColor Green
+    } else {
+        Write-Host "  [FAIL] settings.json" -ForegroundColor Red
+        $ok = $false
+    }
+
+    Write-Host ""
+    if ($ok) {
+        Write-Host "=================================" -ForegroundColor Green
+        Write-Host " Installation Complete!" -ForegroundColor Green
+        Write-Host "=================================" -ForegroundColor Green
+        Write-Host ""
+        Write-Host "Installed to: $installDir" -ForegroundColor Cyan
+        Write-Host ""
+        Write-Host "Next steps:" -ForegroundColor Yellow
+        Write-Host "  1. Restart Claude Code" -ForegroundColor White
+        Write-Host "  2. (Optional) Edit: $installDir\statusline-config.json" -ForegroundColor White
+        Write-Host ""
+        Write-Host "For single-click links in Windows Terminal:" -ForegroundColor Yellow
+        Write-Host "  Settings > Interaction > Disable 'Ctrl+click required'" -ForegroundColor White
+    } else {
+        Write-Host "=================================" -ForegroundColor Red
+        Write-Host " Installation had errors" -ForegroundColor Red
+        Write-Host "=================================" -ForegroundColor Red
+    }
+    Write-Host ""
+
+} catch {
+    Write-Host ""
+    Write-Host "=================================" -ForegroundColor Red
+    Write-Host " Installation Failed" -ForegroundColor Red
+    Write-Host "=================================" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host ""
 }
-
-Write-Host ""
-Write-Host "=================================" -ForegroundColor Green
-Write-Host " Installation Complete!" -ForegroundColor Green
-Write-Host "=================================" -ForegroundColor Green
-Write-Host ""
-Write-Host "Installed to: $installDir" -ForegroundColor Cyan
-Write-Host ""
-Write-Host "Next steps:" -ForegroundColor Yellow
-Write-Host "  1. Restart Claude Code" -ForegroundColor White
-Write-Host "  2. (Optional) Edit config: $installDir\statusline-config.json" -ForegroundColor White
-Write-Host ""
-Write-Host "To enable single-click links in Windows Terminal:" -ForegroundColor Yellow
-Write-Host "  Settings > Interaction > Disable 'Ctrl+click required to follow links'" -ForegroundColor White
-Write-Host ""
