@@ -7,6 +7,8 @@ A custom PowerShell script that displays a rich, informative statusline in the C
 
 ![Screenshot](screenshot.png)
 
+![Screenshot - Compact Mode](screenshot2.png)
+
 ## Features
 
 - **Directory** - Current working directory with **clickable link** to open in File Explorer
