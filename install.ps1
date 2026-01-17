@@ -39,23 +39,34 @@ try {
     $scriptPath = Join-Path $installDir "statusline.ps1"
     $statusLineCommand = "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$scriptPath`""
 
-    # Configure Claude Code settings
+    # Configure Claude Code settings (using new statusLine format)
     Write-Host "Configuring Claude Code settings..." -ForegroundColor Yellow
+
+    $statusLineConfig = @{
+        type = "command"
+        command = $statusLineCommand
+    }
 
     if (Test-Path $settingsFile) {
         $content = Get-Content $settingsFile -Raw
         $settings = $content | ConvertFrom-Json
 
+        # Remove old format if exists
         if ($settings.PSObject.Properties.Name -contains "statusLineCommand") {
-            $settings.statusLineCommand = $statusLineCommand
+            $settings.PSObject.Properties.Remove("statusLineCommand")
+        }
+
+        # Add/update new format
+        if ($settings.PSObject.Properties.Name -contains "statusLine") {
+            $settings.statusLine = $statusLineConfig
         } else {
-            $settings | Add-Member -NotePropertyName "statusLineCommand" -NotePropertyValue $statusLineCommand
+            $settings | Add-Member -NotePropertyName "statusLine" -NotePropertyValue $statusLineConfig
         }
 
         $settings | ConvertTo-Json -Depth 10 | Set-Content $settingsFile -Encoding UTF8
         Write-Host "Updated existing settings.json" -ForegroundColor Green
     } else {
-        $settings = @{ statusLineCommand = $statusLineCommand }
+        $settings = @{ statusLine = $statusLineConfig }
         $settings | ConvertTo-Json -Depth 10 | Set-Content $settingsFile -Encoding UTF8
         Write-Host "Created settings.json" -ForegroundColor Green
     }

@@ -31,10 +31,25 @@ if (Test-Path $settingsFile) {
 
     $content = Get-Content $settingsFile -Raw
     $settings = $content | ConvertFrom-Json
+    $settingsModified = $false
 
+    # Remove new format (statusLine)
+    if ($settings.PSObject.Properties.Name -contains "statusLine") {
+        $settings.PSObject.Properties.Remove("statusLine")
+        Write-Host "Removed statusLine from settings.json" -ForegroundColor Green
+        $settingsModified = $true
+        $removed = $true
+    }
+
+    # Remove old format (statusLineCommand) for backward compatibility
     if ($settings.PSObject.Properties.Name -contains "statusLineCommand") {
         $settings.PSObject.Properties.Remove("statusLineCommand")
+        Write-Host "Removed statusLineCommand from settings.json" -ForegroundColor Green
+        $settingsModified = $true
+        $removed = $true
+    }
 
+    if ($settingsModified) {
         # Check if settings is now empty
         $remainingProps = $settings.PSObject.Properties | Where-Object { $_.MemberType -eq 'NoteProperty' }
 
@@ -45,11 +60,9 @@ if (Test-Path $settingsFile) {
         } else {
             # Write updated settings
             $settings | ConvertTo-Json -Depth 10 | Set-Content $settingsFile -Encoding UTF8
-            Write-Host "Removed statusLineCommand from settings.json" -ForegroundColor Green
         }
-        $removed = $true
     } else {
-        Write-Host "statusLineCommand not found in settings (already removed)" -ForegroundColor Gray
+        Write-Host "Status line config not found in settings (already removed)" -ForegroundColor Gray
     }
 } else {
     Write-Host "Settings file not found" -ForegroundColor Gray
