@@ -419,5 +419,5 @@ if ($barOutput) {
     $output += $barOutput.Trim()
 }
 
-# Join and output
-Write-Host ($output -join $sep) -NoNewline
+# Join and output - use Console.Write for clean output without implicit newlines
+[Console]::Write($output -join $sep)
