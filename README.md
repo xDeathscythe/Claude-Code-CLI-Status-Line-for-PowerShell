@@ -5,6 +5,8 @@ A custom PowerShell script that displays a rich, informative statusline in the C
 ![PowerShell](https://img.shields.io/badge/PowerShell-5.1%2B-blue)
 ![Claude Code](https://img.shields.io/badge/Claude%20Code-Compatible-green)
 
+![Screenshot](screenshot.png)
+
 ## Features
 
 - **Directory** - Current working directory with **clickable link** to open in File Explorer
