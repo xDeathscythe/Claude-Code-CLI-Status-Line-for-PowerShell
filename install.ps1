@@ -63,7 +63,7 @@ if (Test-Path $installDir) {
 # Configure Claude Code settings
 Write-Host "Configuring Claude Code settings..." -ForegroundColor Yellow
 
-$scriptPath = (Join-Path $installDir "statusline.ps1") -replace '\\', '\\\\'
+$scriptPath = Join-Path $installDir "statusline.ps1"
 $statusLineCommand = "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$scriptPath`""
 
 if (Test-Path $settingsFile) {
