@@ -44,7 +44,29 @@ A custom PowerShell script that displays a rich, informative statusline in the C
 
 ## Installation
 
-### 1. Download the files
+### Quick Install (Recommended)
+
+Run this command in PowerShell:
+
+```powershell
+irm https://raw.githubusercontent.com/xDeathscythe/Claude-Code-CLI-Status-Line-for-PowerShell/main/install.ps1 | iex
+```
+
+This will automatically:
+- Download the statusline files to `~/.claude/statusline/`
+- Configure Claude Code settings
+- Display next steps
+
+Then restart Claude Code.
+
+---
+
+### Manual Installation
+
+<details>
+<summary>Click to expand manual installation steps</summary>
+
+#### 1. Download the files
 
 Place both files in a folder of your choice:
 - `statusline.ps1`
@@ -52,24 +74,23 @@ Place both files in a folder of your choice:
 
 Example location: `C:\Users\YourName\.claude\statusline\`
 
-### 2. Configure Claude Code
+#### 2. Configure Claude Code
 
 Add the following to your Claude Code settings (`~/.claude/settings.json`):
 
 ```json
 {
-  "statusLine": {
-    "type": "command",
-    "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"C:\\Users\\YOUR_USERNAME\\.claude\\statusline\\statusline.ps1\""
-  }
+  "statusLineCommand": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"C:\\Users\\YOUR_USERNAME\\.claude\\statusline\\statusline.ps1\""
 }
 ```
 
 Replace `YOUR_USERNAME` with your Windows username.
 
-### 3. Restart Claude Code
+#### 3. Restart Claude Code
 
 The custom status line will appear at the top of the Claude Code interface.
+
+</details>
 
 ---
 
