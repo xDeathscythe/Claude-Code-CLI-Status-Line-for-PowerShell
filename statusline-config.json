@@ -1,0 +1,52 @@
+{
+  "display": {
+    "showDirectory": true,
+    "showGitBranch": true,
+    "showGitStatus": true,
+    "showModel": true,
+    "showLinesChanged": true,
+    "showCost": true,
+    "showTokens": true,
+    "showProgressBar": true,
+    "showPercentage": true,
+    "showTimestamp": false,
+    "timestampFormat": "HH:mm:ss",
+    "compactModeWidth": 100
+  },
+  "colors": {
+    "directory": "97",
+    "branch": "96",
+    "dirtyIndicator": "33",
+    "ahead": "32",
+    "behind": "31",
+    "model": "96",
+    "linesAdded": "32",
+    "linesRemoved": "31",
+    "cost": "96",
+    "tokens": "96",
+    "percentage": "96",
+    "timestamp": "90",
+    "separator": "90",
+    "barLow": "97",
+    "barMedium": "38;5;220",
+    "barHigh": "38;5;196",
+    "barEmpty": "90"
+  },
+  "thresholds": {
+    "barMediumPercent": 50,
+    "barHighPercent": 75
+  },
+  "cache": {
+    "ttlSeconds": 5
+  },
+  "gitHosts": {
+    "custom": [
+      {
+        "name": "My GitLab",
+        "hostPattern": "git.mycompany.com",
+        "urlTemplate": "https://{host}/{path}/-/tree/{branch}",
+        "enabled": false
+      }
+    ]
+  }
+}
